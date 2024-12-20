@@ -8,13 +8,15 @@ from deepgram import DeepgramClient, SpeakOptions
 
 # Load environment variables
 load_dotenv()
+# Fetch API keys from environment variables
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
 
 # Set up the Groq client
-os.environ["GROQ_API_KEY"] = "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"
-client = Groq(api_key=os.environ["GROQ_API_KEY"])
+client = Groq(api_key=GROQ_API_KEY)
 
 # Set up Deepgram client
-deepgram = DeepgramClient("f93a923d27690bf29e66d045d5143c7bee1c76e3")
+deepgram = DeepgramClient(DEEPGRAM_API_KEY)
 
 # Flask app
 app = Flask(__name__)
