@@ -112,6 +112,6 @@ Contributions are welcome! Please open an issue or submit a pull request with an
 
 🌟 Connect with me on:
 - [GitHub](https://github.com/usmanyousaaf)  
-- [Hugging Face](https://huggingface.co/usmanyousaaf)
+- [Hugging Face](https://huggingface.co/usmanyousaf)
 
 ---
