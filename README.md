@@ -83,7 +83,7 @@
 real-time-therapist-agent/
 ├── app.py             # Main Flask application
 ├── templates/         # HTML templates for the UI
-├── static/            # Static assets (CSS, JavaScript, images)
+├── final_audio           # model voices audios 
 ├── requirements.txt   # Python dependencies
 └── .env               # Environment variables (not committed to version control)
 ```
@@ -96,7 +96,7 @@ real-time-therapist-agent/
   Modify the selected voice models or TTS/STT settings in `app.py`.
 
 - **💻 UI/UX:**  
-  Edit the HTML/CSS/JS in `templates/` and `static/` to change the look and feel.
+  Edit the HTML/CSS/JS in `templates/`  to change the look and feel.
 
 - **📝 Prompts & Responses:**  
   Adjust the system and user prompts in `app.py` to refine the conversation style and tone.
@@ -108,7 +108,10 @@ Contributions are welcome! Please open an issue or submit a pull request with an
 
 ---
 
-###  💻 
-Developed by **UsmanYousaaf** 
+### 💻 Developed by **UsmanYousaaf**
+
+🌟 Connect with me on:
+- [GitHub](https://github.com/usmanyousaaf)  
+- [Hugging Face](https://huggingface.co/usmanyousaaf)
 
 ---
