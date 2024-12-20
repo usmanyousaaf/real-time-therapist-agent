@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose a Voice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1d1d1d;
+            color: white;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        h1 {
+            font-size: 2rem;
+            color: #ffffff;
+            margin-bottom: 40px;
+        }
+        .voice-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+        .voice-circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1), rgba(0,0,0,0.5));
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            color: #ffffff;
+            position: relative;
+            animation: float 5s infinite ease-in-out;
+        }
+        .voice-circle:before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            bottom: -10px;
+            left: -10px;
+            background: radial-gradient(circle, rgba(255,255,255,0.2), transparent);
+            border-radius: 50%;
+            animation: rotate 10s infinite linear;
+        }
+        .voice-circle.playing:before {
+            animation: none;
+        }
+        .voice-circle.playing:after {
+            content: "";
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5), 0 0 40px rgba(255, 255, 255, 0.3);
+            animation: pulse 1.5s infinite ease-out;
+        }
+        @keyframes pulse {
+            0% {
+                width: 0;
+                height: 0;
+                opacity: 0.5;
+            }
+            100% {
+                width: 350px;
+                height: 350px;
+                opacity: 0;
+            }
+        }
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+        @keyframes rotate {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        .voice-slider {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            color: #aaaaaa;
+        }
+        .voice-item {
+            text-align: center;
+            opacity: 0.3;
+            transition: opacity 0.3s;
+            flex: 1;
+            white-space: nowrap;
+        }
+        .voice-item.active {
+            opacity: 1;
+            color: white;
+        }
+        .voice-item strong {
+            display: inline;
+            font-size: 1.2rem;
+        }
+        .voice-item span {
+            display: inline;
+            margin-left: 10px;
+            font-size: 0.9rem;
+        }
+        .voice-slider button {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #ffffff;
+            transition: color 0.3s;
+        }
+        .voice-slider button.disabled {
+            color: #555555;
+            cursor: default;
+        }
+        .voice-controls {
+            margin-top: 50px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #3b3838;
+        }
+        .start-chat {
+            background-color: #ffffff;
+            color: #1d1d1d;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1rem;
+        }
+        .cancel {
+            background-color: #252323;
+            color: #ffffff;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1rem;
+        }
+        button:hover {
+            background-color: #3b3838;
+            color: rgb(255, 255, 255);
+        }
+    </style>
+</head>
+<body>
+    <h1>Choose a Voice</h1>
+    <div class="voice-container">
+        <div class="voice-circle" id="voice-circle">
+            <div id="voice-description" style="font-size: 1.rem; color: #ffffff;"></div>
+        </div>
+        <div class="voice-slider">
+            <div class="voice-item" id="prev-voice"></div>
+            <button id="prev-button" onclick="prevVoice()">&#8249;</button>
+            <div class="voice-item active" id="current-voice"></div>
+            <button id="next-button" onclick="nextVoice()">&#8250;</button>
+            <div class="voice-item" id="next-voice"></div>
+        </div>
+    </div>
+    <div class="voice-controls">
+        <button class="start-chat" onclick="startChat()">Start new chat</button>
+        <button class="cancel" onclick="cancel()">Cancel</button>
+    </div>
+
+    <script>
+        const voices = [
+            { id: "aura-luna-en",    displayName: "Luna",    description: "English (US) - Female", file: "Luna - English (US) - Female.wav" },
+            { id: "aura-athena-en",  displayName: "Athena",  description: "English (UK) - Female", file: "Athena - English (UK) - Female.wav" },
+            { id: "aura-angus-en",   displayName: "Angus",   description: "English (Ireland) - Male", file: "Angus - English (Ireland) - Male.wav" },
+            { id: "aura-stella-en",  displayName: "Stella",  description: "English (US) - Female", file: "Stella - English (US) - Female.wav" },
+            { id: "aura-zeus-en",    displayName: "Zeus",    description: "English (US) - Male",   file: "Zeus - English (US) - Male.wav" },
+            { id: "aura-orion-en",   displayName: "Orion",   description: "English (US) - Male",   file: "Orion - English (US) - Male.mp3" },
+            { id: "aura-hera-en",    displayName: "Hera",    description: "English (US) - Female", file: "Hera - English  (US) - Female.wav" },
+            { id: "aura-arcas-en",   displayName: "Arcas",   description: "English (US) - Male",   file: "Arcas - English (US) - Male.mp3" },
+            { id: "aura-perseus-en", displayName: "Perseus", description: "English (US) - Male",   file: "Perseus - English (US) - Male.wav" },
+            { id: "aura-helios-en",  displayName: "Helios",  description: "English (UK) - Male",   file: "Helios - English (UK) - Male.wav" },
+            { id: "aura-orpheus-en", displayName: "Orpheus", description: "English (US) - Male",   file: "Orpheus - English (US) - Male.wav" }
+        ];
+    
+
+        let currentVoiceIndex = 5;
+        let audioElement = new Audio();
+        let playTimeout = null;
+
+        function updateVoiceDisplay() {
+        const prevVoice = document.getElementById("prev-voice");
+        const currentVoice = document.getElementById("current-voice");
+        const nextVoice = document.getElementById("next-voice");
+        const voiceDescription = document.getElementById("voice-description");
+        const prevButton = document.getElementById("prev-button");
+        const nextButton = document.getElementById("next-button");
+
+        if (currentVoiceIndex > 0) {
+            prevVoice.innerHTML = `<strong>${voices[currentVoiceIndex - 1].displayName}</strong><br><span>${voices[currentVoiceIndex - 1].description}</span>`;
+            prevVoice.style.opacity = "0.3";
+        } else {
+            prevVoice.innerHTML = "";
+            prevVoice.style.opacity = "0";
+        }
+
+        currentVoice.innerHTML = `<strong>${voices[currentVoiceIndex].displayName}</strong><br><span>${voices[currentVoiceIndex].description}</span>`;
+        currentVoice.classList.add("active");
+
+        if (currentVoiceIndex < voices.length - 1) {
+            nextVoice.innerHTML = `<strong>${voices[currentVoiceIndex + 1].displayName}</strong><br><span>${voices[currentVoiceIndex + 1].description}</span>`;
+            nextVoice.style.opacity = "0.3";
+        } else {
+            nextVoice.innerHTML = "";
+            nextVoice.style.opacity = "0";
+        }
+
+        const descParts = voices[currentVoiceIndex].description.split('-');
+        const gender = descParts[descParts.length - 1].trim();
+        voiceDescription.textContent = gender;
+
+        prevButton.classList.toggle("disabled", currentVoiceIndex === 0);
+        nextButton.classList.toggle("disabled", currentVoiceIndex === voices.length - 1);
+
+        // Schedule audio playback for the current voice after 1-2 seconds
+        setTimeout(playSelectedVoiceAudio, 1500);
+    }
+
+
+        function prevVoice() {
+            if (currentVoiceIndex > 0) {
+                currentVoiceIndex--;
+                updateVoiceDisplay();
+            }
+        }
+
+        function nextVoice() {
+            if (currentVoiceIndex < voices.length - 1) {
+                currentVoiceIndex++;
+                updateVoiceDisplay();
+            }
+        }
+
+        function startChat() {
+            const voice = voices[currentVoiceIndex].id; 
+            window.location.href = '/start-chat?voice=' + encodeURIComponent(voice);
+        }
+
+        function cancel() {
+            alert("Chat canceled");
+        }
+
+        function scheduleAudioPlayback() {
+            if (playTimeout) {
+                clearTimeout(playTimeout);
+            }
+
+            audioElement.pause();
+            audioElement.currentTime = 0;
+
+            playTimeout = setTimeout(playSelectedVoiceAudio, 1000);
+        }
+
+        function playSelectedVoiceAudio() {
+            const voiceCircle = document.getElementById("voice-circle");
+            const voice = voices[currentVoiceIndex];
+            audioElement.src = `../final_audio/${voice.file}`;
+            voiceCircle.classList.add("playing");
+            audioElement.play().catch(err => {
+                console.error("Audio playback failed:", err);
+            });
+
+            audioElement.onended = () => {
+                voiceCircle.classList.remove("playing");
+            };
+        }
+
+        updateVoiceDisplay();
+    </script>
+</body>
+</html>

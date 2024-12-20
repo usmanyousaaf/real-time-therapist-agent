@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Therapist</title>
+
+    <style>
+        /* ----- Styles from index.html ----- */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1d1d1d;
+            color: white;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            padding: 0 20px; /* Ensure text is centered with proper spacing */
+        }
+        h1 {
+            font-size: 2rem;
+            color: #ffffff;
+            margin-bottom: 40px;
+        }
+        h6 {
+            font-size: 0.7rem;
+            color: #ffffff;
+            margin-bottom: 90px;
+        }
+        .circle-container {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1), rgba(0,0,0,0.5));
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            color: #ffffff;
+            position: relative;
+            animation: float 5s infinite ease-in-out;
+            cursor: pointer;
+        }
+        .circle-container.disabled {
+            pointer-events: none; /* Disable clicks */
+            animation: none; /* Stop floating animation */
+        }
+        .circle-container:before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            bottom: -10px;
+            left: -10px;
+            background: radial-gradient(circle, rgba(255,255,255,0.2), transparent);
+            border-radius: 50%;
+            animation: rotate 10s infinite linear;
+        }
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+        @keyframes rotate {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        .status-text {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 1.2rem;
+            color: #ffffff;
+        }
+        .status-text .emoji {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+        /* Response container styles for multi-line text */
+        .response-container {
+            margin-top: 20px;
+            font-family: 'Anonymous Pro', monospace;
+            font-size: 0.9rem;
+            color: #ffffff;
+            text-align: center;
+            white-space: normal;
+            overflow: hidden;
+            width: 80%;
+            max-width: 600px; /* Limit the width of the text block */
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .response-line {
+            opacity: 0;
+            animation: fadeIn 1s ease forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+
+    <!-- Additional code from buttons.html -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <style>
+        /* ----- Styles from buttons.html (exactly as provided) ----- */
+        body {
+            background-color: #222;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            height: 90vh;
+            margin: 109;
+            padding-bottom: 40px;
+            position: relative;
+        }
+        .button-container {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: row;
+            gap: 20px; /* Space between buttons */
+            align-items: center;
+            justify-content: center;
+        }
+
+        .button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            border: 2px solid #fff;
+            position: relative;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .button:hover {
+            transform: scale(1.1);
+        }
+        .mute-button:hover {
+            background-color: #ffffff; /* Default background color for mute button */
+        }
+        .mute-button {
+            background-color: #333; /* Default background color for mute button */
+        }
+        .close-button {
+            background-color: #333; /* Default background color for close button */
+        }
+        .close-button:hover {
+            background-color: #fff; /* Close button turns white on hover */
+        }
+        .close-button:hover .mute-icon {
+            color: #000; /* Icon color turns black on hover */
+        }
+        .close-button:hover::after {
+            font-size: 12px;
+            font-style: bold;
+            position: absolute;
+            color: #000000;
+        }
+        .button:hover .mute-icon {
+            color: black; /* Icon color changes to black on hover */
+        }
+        .mute-icon {
+            font-size: 36px;
+            color: white;
+        }
+        .muted {
+            background-color: #ff0000; /* Light red background when muted */
+        }
+        .unmuted {
+            background-color: #333; /* Default background when unmuted */
+        }
+        .muted .mute-icon {
+            color: black; /* Black mic icon when muted with a line */
+            text-decoration: line-through;
+        }
+        .muted .button {
+            background-color: lightcoral; /* Background turns light red when muted */
+        }
+        .mute-text {
+            display: none; /* Mute text is hidden by default */
+        }
+        .button:hover .mute-text {
+            display: block; /* Mute User text is visible on hover */
+            font-size: 13px;
+            font-weight: bold;
+            white-space: nowrap;
+            color: white;
+            position: absolute;
+            top: -30px;
+        }
+        .mute-text-unmuted {
+            display: none; /* Mute User text hidden when unmuted */
+        }
+        .button.muted .mute-text-unmuted {
+            display: none; /* Mute User text is hidden when muted */
+        }
+        .button.muted .mute-text {
+            display: block; /* Unmute text is visible when muted */
+            font-size: 13px;
+            font-weight: bold;
+            white-space: nowrap;
+            color: white;
+            position: absolute;
+            top: -30px;
+        }
+
+        .snowflake {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: rgb(160, 227, 246);; /* Snowflake icon color */
+            font-size: 36px;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: snowflakeAnimation 3s infinite;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .snowflake:hover {
+            transform: rotate(45deg);
+            animation: snowflakeHoverAnimation 0.5s forwards;
+            color: rgb(255, 255, 255);
+        }
+
+        @keyframes snowflakeAnimation {
+            0% {
+                transform: rotate(0deg);
+            }
+            50% {
+                transform: rotate(180deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes snowflakeHoverAnimation {
+            0% {
+                transform: rotate(45deg);
+            }
+            100% {
+                transform: scale(1.2);
+            }
+        }
+        .snowflake:hover .snowflake-text {
+            display: block;
+            color: rgb(255, 255, 255); /* Text color white */
+            font-size: 12px; /* Smaller font size */
+            font-family: 'Arial', sans-serif; /* Clean font */
+            text-align: center;
+            line-height: 1.2;
+            white-space: nowrap;
+            position: absolute; /* Absolute positioning relative to the snowflake */
+            top: 100%; /* Positions the text below the snowflake */
+            left: 50%; /* Centers the text horizontally */
+            transform: translateX(-50%); /* Ensures proper centering */
+            margin-top: 10px; /* Additional space between the snowflake and text */
+        }
+
+        .snowflake-text {
+            display: none;
+        }
+
+        /* Add a class to remove pointer cursor when muted */
+        .muted-disabled {
+            cursor: default !important;
+        }
+        #start-text {
+        color: rgb(255, 255, 255);
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        animation: blink 0.5s step-start 2; /* On-off effect (2 cycles, on-off-on) */
+    }
+
+        #start-text.hidden {
+        display: none; /* Completely hides the element */
+    }
+
+        @keyframes blink {
+            50% {
+                opacity: 0; /* Off state */
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Add a wrapper to center main content -->
+    <div class="content-wrapper">
+        <!-- Content from index.html -->
+        <h1>Talk to Your Virtual Therapist</h1>
+        <div class="circle-container" id="status-circle" onclick="toggleRecording()">
+            <div class="status-text" id="status-text">
+                <span class="emoji" id="emoji">🎙️</span>
+                Start
+            </div>
+        </div>
+        <div class="response-container" id="response-container"></div>
+        <h4 id="start-text">Hit start and let’s talk</h4>
+
+        <!-- Button container from buttons.html -->
+        <div class="button-container">
+          <div id="muteButton" class="button mute-button unmuted">
+            <span class="mute-icon"><i class="material-icons">mic</i></span>
+            <span class="mute-text">Mute User</span>
+          </div>
+          <div id="closeButton" class="button close-button">
+            <span class="mute-icon">&#x2715;</span>
+            <span class="mute-text">Terminate</span>
+          </div>
+        </div>
+    </div>
+
+    <!-- Snowflake from buttons.html -->
+    <div class="snowflake" onclick="window.history.back();">
+      &#10052;
+      <div class="snowflake-text">
+        Choose<br>voice
+      </div>
+    </div>
+
+    <script>
+        // ----- Script from index.html -----
+        const statusText = document.getElementById('status-text');
+        const emoji = document.getElementById('emoji');
+        const responseContainer = document.getElementById('response-container');
+        const statusCircle = document.getElementById('status-circle');
+
+        // Hide the text after 2 blinks (1 second total)
+        const startText = document.getElementById('start-text');
+
+        setTimeout(() => {
+            startText.classList.add('hidden'); // Hide the element completely
+        }, 5500); // 2 blinks = 1 second (0.5s per blink * 2)
+
+
+        let isRecording = false;
+        let mediaRecorder;
+        let audioChunks = [];
+
+        // Reference to mute state
+        let isMuted = false;
+
+        function toggleRecording() {
+            // If muted, do nothing
+            if (isMuted) {
+                return;
+            }
+
+            if (isRecording) {
+                stopRecording();
+            } else {
+                startRecording();
+            }
+        }
+
+        function startRecording() {
+            isRecording = true;
+            statusText.innerHTML = '<span class="emoji">✋</span> Stop';
+            responseContainer.innerHTML = ''; // Clear response
+            statusCircle.classList.remove('disabled'); // Enable circle click during recording
+
+            navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                mediaRecorder.ondataavailable = function(event) {
+                    audioChunks.push(event.data);
+                };
+                mediaRecorder.onstop = async function() {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    const formData = new FormData();
+                    formData.append('audio_data', audioBlob, 'recording.wav');
+
+                    statusText.innerHTML = '<span class="emoji">⏳</span> Processing';
+                    statusCircle.classList.add('disabled'); // Disable click while processing
+
+                    const response = await fetch('/process', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (result.error) {
+                        statusText.innerHTML = `<span class="emoji">❌</span> Error`;
+                        responseContainer.textContent = `Error: ${result.error}`;
+                    } else {
+                        statusText.innerHTML = `<span class="emoji">💬</span> Response`;
+                        displayResponse(result.response);
+                        const audio = new Audio(result.audioUrl);
+                        audio.play();
+                        audio.onended = () => {
+                            resetCircle();
+                        };
+                    }
+                };
+                mediaRecorder.start();
+            });
+        }
+
+        function stopRecording() {
+            isRecording = false;
+            statusText.innerHTML = '<span class="emoji">⏳</span> Processing';
+            mediaRecorder.stop();
+            statusCircle.classList.add('disabled'); // Disable circle click during processing
+        }
+
+        function resetCircle() {
+            isRecording = false;
+            statusText.innerHTML = '<span class="emoji">🎙️</span> Start';
+            statusCircle.classList.remove('disabled'); // Enable circle click after response
+        }
+
+        function displayResponse(responseText) {
+            responseContainer.innerHTML = ''; // Clear existing text
+            const lines = responseText.split('. '); // Split response into sentences
+            lines.forEach((line, index) => {
+                const lineElement = document.createElement('div');
+                lineElement.textContent = line.trim();
+                lineElement.className = 'response-line';
+                lineElement.style.animationDelay = `${index}s`;
+                responseContainer.appendChild(lineElement);
+            });
+        }
+
+        // ----- Script from buttons.html -----
+        const muteButton = document.getElementById('muteButton');
+        const closeButton = document.getElementById('closeButton');
+
+        muteButton.addEventListener('click', () => {
+          isMuted = !isMuted;
+
+          // Add/remove class to circle-container to show no pointer when muted
+          if (isMuted) {
+            muteButton.classList.remove('unmuted');
+            muteButton.classList.add('muted');
+            muteButton.innerHTML = `
+              <span class="mute-icon">
+                <i class="material-icons" style="color:black">mic_off</i>
+              </span>
+              <span class="mute-text">Unmute</span> <!-- Show "Unmute" when muted -->
+            `;
+            statusCircle.classList.add('muted-disabled');
+          } else {
+            muteButton.classList.remove('muted');
+            muteButton.classList.add('unmuted');
+            muteButton.innerHTML = `
+              <span class="mute-icon">
+                <i class="material-icons">mic</i>
+              </span>
+              <span class="mute-text">Mute User</span> <!-- Show "Mute User" when unmuted -->
+            `;
+            statusCircle.classList.remove('muted-disabled');
+          }
+        });
+
+        closeButton.addEventListener('click', () => {
+          location.reload();
+        });
+    </script>
+
+    <!-- Override styles at the end to center the main content while keeping snowflake top-right -->
+    <style>
+      body {
+        background-color: #1d1d1d !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+        height: 100vh !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+        padding: 0 20px !important;
+        text-align: center !important;
+      }
+      .content-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .snowflake {
+        position: absolute !important;
+        top: 10px !important;
+        right: 10px !important;
+      }
+    </style>
+</body>
+</html>
